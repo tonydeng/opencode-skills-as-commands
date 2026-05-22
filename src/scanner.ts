@@ -32,29 +32,42 @@ export async function scanDir(
   base: string,
   fs: FileSystem,
 ): Promise<CommandMap> {
-  const commands: CommandMap = {};
   let dirs: Awaited<ReturnType<FileSystem["readdir"]>>;
   try {
     dirs = await fs.readdir(base);
   } catch {
-    return commands;
+    return {};
   }
+
+  const promises = [];
+
   for (const entry of dirs) {
     if (!entry.isDirectory()) continue;
     const mdPath = join(base, entry.name, "SKILL.md");
-    try {
-      await fs.access(mdPath);
-      const raw = await fs.readFile(mdPath, "utf-8");
-      const { data, content } = matter(raw);
-      if (data.name && data.description) {
-        commands[data.name] = {
-          template: content.trim(),
-          description: data.description,
-        };
+
+    promises.push((async (mdPath: string): Promise<CommandMap> => {
+      try {
+        await fs.access(mdPath);
+        const raw = await fs.readFile(mdPath, "utf-8");
+        const { data, content } = matter(raw);
+        if (data.name && data.description) {
+          return {
+            [data.name]: {
+              template: content.trim(),
+              description: data.description,
+            },
+          };
+        }
+        return {};
+      } catch {
+        /* skip missing/invalid SKILL.md */
+        return {};
       }
-    } catch {
-      /* skip missing/invalid SKILL.md */
-    }
+    })(mdPath));
   }
-  return commands;
+
+  return (await Promise.all(promises)).reduce(
+    (previous: CommandMap, next: CommandMap) => ({ ...previous, ...next }),
+    {},
+  );
 }
