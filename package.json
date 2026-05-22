@@ -1,0 +1,30 @@
+{
+  "name": "opencode-skills-as-commands",
+  "version": "1.0.0",
+  "description": "Expose all OpenCode skills as slash commands in the TUI autocomplete",
+  "type": "module",
+  "main": "src/index.ts",
+  "engines": {
+    "opencode": "^1.0.0"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "skills",
+    "slash-commands"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cesumilo/opencode-skills-as-commands"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "gray-matter": "^4.0.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.4.0",
+    "prettier": "^3.8.3",
+    "typescript-eslint": "^8.59.4"
+  }
+}

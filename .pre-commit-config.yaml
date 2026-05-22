@@ -1,0 +1,38 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+
+  - repo: local
+    hooks:
+      - id: format-check
+        name: format check
+        entry: bun prettier --check "src/**" "*.md" "*.json" "*.yaml"
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: format
+        name: format
+        entry: bun prettier --write "src/**" "*.md" "*.json" "*.yaml"
+        language: system
+        pass_filenames: false
+        stages: [manual]
+
+      - id: lint
+        name: lint
+        entry: bun eslint .
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: bun-test
+        name: bun test
+        entry: bun test
+        language: system
+        pass_filenames: false
+        always_run: true
