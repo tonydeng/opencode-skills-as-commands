@@ -19,6 +19,12 @@ export type CommandMap = Record<
   { template: string; description: string }
 >;
 
+function isDirectory(
+  entry: Awaited<ReturnType<FileSystem["readdir"]>>[number],
+) {
+  return entry.isDirectory() || entry.isSymbolicLink();
+}
+
 /**
  * Reads a single skill directory and returns a command map for every valid
  * SKILL.md found. Skills missing `name` or `description` frontmatter are
@@ -42,28 +48,29 @@ export async function scanDir(
   const promises = [];
 
   for (const entry of dirs) {
-    if (!entry.isDirectory()) continue;
+    if (!isDirectory(entry)) continue;
     const mdPath = join(base, entry.name, "SKILL.md");
 
-    promises.push((async (mdPath: string): Promise<CommandMap> => {
-      try {
-        await fs.access(mdPath);
-        const raw = await fs.readFile(mdPath, "utf-8");
-        const { data, content } = matter(raw);
-        if (data.name && data.description) {
-          return {
-            [data.name]: {
-              template: content.trim(),
-              description: data.description,
-            },
-          };
+    promises.push(
+      (async (mdPath: string): Promise<CommandMap> => {
+        try {
+          await fs.access(mdPath);
+          const raw = await fs.readFile(mdPath, "utf-8");
+          const { data, content } = matter(raw);
+          if (data.name && data.description) {
+            return {
+              [data.name]: {
+                template: content.trim(),
+                description: data.description,
+              },
+            };
+          }
+          return {};
+        } catch {
+          return {};
         }
-        return {};
-      } catch {
-        /* skip missing/invalid SKILL.md */
-        return {};
-      }
-    })(mdPath));
+      })(mdPath),
+    );
   }
 
   return (await Promise.all(promises)).reduce(

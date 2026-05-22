@@ -21,9 +21,13 @@ export const SkillsAsCommands = async ({
   worktree: string;
   fs?: FileSystem;
 }) => {
+  const results = await Promise.all(
+    SKILL_PATHS(worktree).map((base) => scanDir(base, fs)),
+  );
+
   const all: Record<string, { template: string; description: string }> = {};
-  for (const base of SKILL_PATHS(worktree)) {
-    Object.assign(all, await scanDir(base, fs));
+  for (const result of results) {
+    Object.assign(all, result);
   }
 
   return {
